@@ -1,0 +1,524 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Gestión de Óptica</title>
+
+<style>
+    body {
+        font-family: 'Segoe UI', sans-serif;
+        background: #eef2f3;
+        margin: 0;
+        padding: 0;
+        color: #333;
+    }
+
+    header {
+        text-align: center;
+        background: linear-gradient(45deg, #00aaff, #0066ff);
+        color: white;
+        padding: 18px;
+        font-size: 26px;
+        font-weight: bold;
+    }
+
+    /* Tabs */
+    .tabs {
+        display: flex;
+        background: #0066ff;
+    }
+    .tab {
+        flex: 1;
+        text-align: center;
+        padding: 15px;
+        color: white;
+        cursor: pointer;
+        font-weight: bold;
+    }
+    .tab.active { background: #004bbb; }
+
+    .content {
+        display: none;
+        padding: 20px;
+    }
+    .content.active { display: block; }
+
+    /* Cards */
+    .card {
+        background: white;
+        padding: 20px;
+        border-radius: 12px;
+        box-shadow: 0 3px 10px rgba(0,0,0,0.15);
+        margin-bottom: 30px;
+        border-left: 6px solid #0066ff;
+    }
+
+    input, select, textarea {
+        padding: 10px;
+        margin: 8px 0;
+        width: 100%;
+        border: 2px solid #ccc;
+        border-radius: 6px;
+        font-size: 14px;
+    }
+
+    textarea { resize: vertical; }
+
+    button {
+        padding: 10px 18px;
+        background: #0066ff;
+        color: white;
+        border: none;
+        border-radius: 6px;
+        cursor: pointer;
+        margin-right: 5px;
+        font-size: 14px;
+    }
+
+    button:hover { background: #0044aa; }
+    .btn-edit { background: #ffaa00; }
+    .btn-edit:hover { background: #cc7a00; }
+    .btn-delete { background: #ff4444; }
+    .btn-delete:hover { background: #cc0000; }
+
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 15px;
+        background: white;
+    }
+
+    th {
+        background: #0066ff;
+        color: white;
+        padding: 12px;
+    }
+
+    td {
+        padding: 10px;
+        border-bottom: 1px solid #ddd;
+    }
+</style>
+</head>
+<body>
+
+<header>Software de Gestión de Óptica</header>
+
+<!-- TABS -->
+<div class="tabs">
+    <div class="tab active" onclick="showTab(0)">Pacientes</div>
+    <div class="tab" onclick="showTab(1)">Historia Clínica</div>
+    <div class="tab" onclick="showTab(2)">Productos</div>
+    <div class="tab" onclick="showTab(3)">Facturación</div>
+</div>
+
+<!-- TAB 1: PACIENTES -->
+<div class="content active">
+    <div class="card">
+        <h2>Pacientes</h2>
+
+        <input id="pacNombre" placeholder="Nombre completo">
+        <input id="pacEdad" type="number" placeholder="Edad">
+        <input id="pacTelefono" placeholder="Teléfono">
+        <input id="pacDireccion" placeholder="Dirección">
+
+        <button onclick="guardarPaciente()">Guardar</button>
+        <button onclick="limpiarPaciente()">Limpiar</button>
+        <input type="hidden" id="pacEdit">
+
+        <h3>Lista de Pacientes</h3>
+        <table id="tablaPacientes">
+            <tr>
+                <th>Nombre</th><th>Edad</th><th>Teléfono</th><th>Dirección</th><th>Acciones</th>
+            </tr>
+        </table>
+    </div>
+</div>
+
+<!-- TAB 2: HISTORIA CLÍNICA -->
+<div class="content">
+    <div class="card">
+        <h2>Historia Clínica del Paciente</h2>
+
+        <label>Paciente:</label>
+        <select id="hcPaciente"></select>
+
+        <label>Motivo de consulta:</label>
+        <input id="hcMotivo">
+
+        <label>AV Sin Corrección:</label>
+        <input id="hcAVSC" placeholder="Ej: OD 20/40 - OI 20/50">
+
+        <label>AV Con Corrección:</label>
+        <input id="hcAVCC" placeholder="Ej: OD 20/20 - OI 20/25">
+
+        <label>RX Final:</label>
+        <input id="hcRX" placeholder="Ej: OD -1.00 -0.50 x 180 / OI -0.75 -0.25 x 170">
+
+        <label>Observaciones:</label>
+        <textarea id="hcObs"></textarea>
+
+        <button onclick="guardarHC()">Guardar</button>
+        <button onclick="limpiarHC()">Limpiar</button>
+        <input type="hidden" id="hcEdit">
+
+        <h3>Registros Clínicos</h3>
+        <table id="tablaHC">
+            <tr>
+                <th>Paciente</th>
+                <th>Motivo</th>
+                <th>RX Final</th>
+                <th>Fecha</th>
+                <th>Acciones</th>
+            </tr>
+        </table>
+    </div>
+</div>
+
+<!-- TAB 3: PRODUCTOS -->
+<div class="content">
+    <div class="card">
+        <h2>Productos</h2>
+
+        <input id="prodNombre" placeholder="Nombre del producto">
+        <input id="prodPrecio" type="number" placeholder="Precio">
+
+        <button onclick="guardarProducto()">Guardar</button>
+        <button onclick="limpiarProducto()">Limpiar</button>
+        <input type="hidden" id="prodEdit">
+
+        <h3>Inventario</h3>
+        <table id="tablaProductos">
+            <tr><th>Producto</th><th>Precio</th><th>Acciones</th></tr>
+        </table>
+    </div>
+</div>
+
+<!-- TAB 4: FACTURACIÓN -->
+<div class="content">
+    <div class="card">
+        <h2>Generar Factura</h2>
+
+        <label>Paciente:</label>
+        <select id="factPaciente"></select>
+
+        <label>Producto:</label>
+        <select id="factProducto" onchange="actualizarPrecio()"></select>
+
+        <label>Precio:</label>
+        <input id="factPrecio" disabled>
+
+        <button onclick="generarFactura()">Crear Factura</button>
+
+        <h3>Facturas Emitidas</h3>
+        <table id="tablaFacturas">
+            <tr>
+                <th>Paciente</th><th>Producto</th><th>Monto</th><th>Fecha</th>
+            </tr>
+        </table>
+    </div>
+</div>
+
+<script>
+/* ---------------------------------
+   LOCAL STORAGE
+----------------------------------*/
+let pacientes = JSON.parse(localStorage.getItem("pacientes")) || [];
+let historias = JSON.parse(localStorage.getItem("historias")) || [];
+let productos = JSON.parse(localStorage.getItem("productos")) || [];
+let facturas = JSON.parse(localStorage.getItem("facturas")) || [];
+
+/* ---------------------------------
+   CAMBIO DE TABS
+----------------------------------*/
+function showTab(i) {
+    document.querySelectorAll(".tab").forEach(t => t.classList.remove("active"));
+    document.querySelectorAll(".content").forEach(c => c.classList.remove("active"));
+
+    document.querySelectorAll(".tab")[i].classList.add("active");
+    document.querySelectorAll(".content")[i].classList.add("active");
+}
+
+/* ---------------------------------
+   CRUD PACIENTES
+----------------------------------*/
+function guardarPaciente() {
+    let nombre = pacNombre.value.trim();
+    let edad = pacEdad.value;
+    let telefono = pacTelefono.value.trim();
+    let direccion = pacDireccion.value.trim();
+    let edit = pacEdit.value;
+
+    if (!nombre || !edad || !telefono) return alert("Completa los datos obligatorios.");
+
+    let p = { nombre, edad, telefono, direccion };
+
+    if (edit === "") pacientes.push(p);
+    else pacientes[edit] = p;
+
+    localStorage.setItem("pacientes", JSON.stringify(pacientes));
+    mostrarPacientes();
+    cargarSelectPacientes();
+    limpiarPaciente();
+}
+
+function editarPaciente(i) {
+    let p = pacientes[i];
+    pacNombre.value = p.nombre;
+    pacEdad.value = p.edad;
+    pacTelefono.value = p.telefono;
+    pacDireccion.value = p.direccion;
+    pacEdit.value = i;
+}
+
+function eliminarPaciente(i) {
+    if (!confirm("¿Eliminar paciente?")) return;
+    pacientes.splice(i, 1);
+    localStorage.setItem("pacientes", JSON.stringify(pacientes));
+    mostrarPacientes();
+    cargarSelectPacientes();
+}
+
+function limpiarPaciente() {
+    pacNombre.value = "";
+    pacEdad.value = "";
+    pacTelefono.value = "";
+    pacDireccion.value = "";
+    pacEdit.value = "";
+}
+
+function mostrarPacientes() {
+    tablaPacientes.innerHTML = `
+    <tr><th>Nombre</th><th>Edad</th><th>Teléfono</th><th>Dirección</th><th>Acciones</th></tr>
+    `;
+    pacientes.forEach((p,i)=>{
+        tablaPacientes.innerHTML += `
+        <tr>
+            <td>${p.nombre}</td>
+            <td>${p.edad}</td>
+            <td>${p.telefono}</td>
+            <td>${p.direccion || ""}</td>
+            <td>
+                <button class="btn-edit" onclick="editarPaciente(${i})">Editar</button>
+                <button class="btn-delete" onclick="eliminarPaciente(${i})">Eliminar</button>
+            </td>
+        </tr>`;
+    });
+}
+
+/* ---------------------------------
+   SELECTS PACIENTES USADOS EN HC Y FACTURAS
+----------------------------------*/
+function cargarSelectPacientes() {
+    hcPaciente.innerHTML = "";
+    factPaciente.innerHTML = "";
+
+    pacientes.forEach((p,i)=>{
+        hcPaciente.innerHTML += `<option value="${p.nombre}">${p.nombre}</option>`;
+        factPaciente.innerHTML += `<option value="${p.nombre}">${p.nombre}</option>`;
+    });
+}
+
+/* ---------------------------------
+   HISTORIA CLÍNICA
+----------------------------------*/
+function guardarHC() {
+    let paciente = hcPaciente.value;
+    let motivo = hcMotivo.value.trim();
+    let avsc = hcAVSC.value.trim();
+    let avcc = hcAVCC.value.trim();
+    let rx = hcRX.value.trim();
+    let obs = hcObs.value.trim();
+    let edit = hcEdit.value;
+
+    if (!paciente || !motivo) return alert("Complete paciente y motivo.");
+
+    let hc = {
+        paciente, motivo, avsc, avcc, rx, obs,
+        fecha: new Date().toLocaleString()
+    };
+
+    if (edit === "") historias.push(hc);
+    else historias[edit] = hc;
+
+    localStorage.setItem("historias", JSON.stringify(historias));
+    mostrarHC();
+    limpiarHC();
+}
+
+function editarHC(i) {
+    let h = historias[i];
+    hcPaciente.value = h.paciente;
+    hcMotivo.value = h.motivo;
+    hcAVSC.value = h.avsc;
+    hcAVCC.value = h.avcc;
+    hcRX.value = h.rx;
+    hcObs.value = h.obs;
+    hcEdit.value = i;
+}
+
+function eliminarHC(i) {
+    if (!confirm("¿Eliminar registro clínico?")) return;
+    historias.splice(i,1);
+    localStorage.setItem("historias", JSON.stringify(historias));
+    mostrarHC();
+}
+
+function limpiarHC() {
+    hcMotivo.value = "";
+    hcAVSC.value = "";
+    hcAVCC.value = "";
+    hcRX.value = "";
+    hcObs.value = "";
+    hcEdit.value = "";
+}
+
+function mostrarHC() {
+    tablaHC.innerHTML = `
+    <tr>
+        <th>Paciente</th>
+        <th>Motivo</th>
+        <th>RX Final</th>
+        <th>Fecha</th>
+        <th>Acciones</th>
+    </tr>
+    `;
+
+    historias.forEach((h,i)=>{
+        tablaHC.innerHTML += `
+        <tr>
+            <td>${h.paciente}</td>
+            <td>${h.motivo}</td>
+            <td>${h.rx}</td>
+            <td>${h.fecha}</td>
+            <td>
+                <button class="btn-edit" onclick="editarHC(${i})">Editar</button>
+                <button class="btn-delete" onclick="eliminarHC(${i})">Eliminar</button>
+            </td>
+        </tr>`;
+    });
+}
+
+/* ---------------------------------
+   PRODUCTOS
+----------------------------------*/
+function guardarProducto() {
+    let nombre = prodNombre.value.trim();
+    let precio = Number(prodPrecio.value);
+    let edit = prodEdit.value;
+
+    if (!nombre || precio <= 0) return alert("Datos inválidos.");
+
+    let p = { nombre, precio };
+
+    if (edit === "") productos.push(p);
+    else productos[edit] = p;
+
+    localStorage.setItem("productos", JSON.stringify(productos));
+    mostrarProductos();
+    cargarSelectProductos();
+    limpiarProducto();
+}
+
+function editarProducto(i) {
+    let p = productos[i];
+    prodNombre.value = p.nombre;
+    prodPrecio.value = p.precio;
+    prodEdit.value = i;
+}
+
+function eliminarProducto(i) {
+    if (!confirm("¿Eliminar producto?")) return;
+    productos.splice(i,1);
+    localStorage.setItem("productos", JSON.stringify(productos));
+    mostrarProductos();
+    cargarSelectProductos();
+}
+
+function limpiarProducto() {
+    prodNombre.value = "";
+    prodPrecio.value = "";
+    prodEdit.value = "";
+}
+
+function mostrarProductos() {
+    tablaProductos.innerHTML = `
+    <tr><th>Producto</th><th>Precio</th><th>Acciones</th></tr>
+    `;
+
+    productos.forEach((p,i)=>{
+        tablaProductos.innerHTML += `
+        <tr>
+            <td>${p.nombre}</td>
+            <td>$${p.precio}</td>
+            <td>
+                <button class="btn-edit" onclick="editarProducto(${i})">Editar</button>
+                <button class="btn-delete" onclick="eliminarProducto(${i})">Eliminar</button>
+            </td>
+        </tr>`;
+    });
+}
+
+/* ---------------------------------
+   FACTURACIÓN
+----------------------------------*/
+function cargarSelectProductos() {
+    factProducto.innerHTML = "";
+    productos.forEach((p,i)=>{
+        factProducto.innerHTML += `<option value="${i}">${p.nombre}</option>`;
+    });
+}
+
+function actualizarPrecio() {
+    let i = factProducto.value;
+    factPrecio.value = productos[i]?.precio || "";
+}
+
+function generarFactura() {
+    let paciente = factPaciente.value;
+    let i = factProducto.value;
+
+    if (!paciente || !productos[i]) return alert("Datos inválidos.");
+
+    facturas.push({
+        paciente,
+        producto: productos[i].nombre,
+        monto: productos[i].precio,
+        fecha: new Date().toLocaleString()
+    });
+
+    localStorage.setItem("facturas", JSON.stringify(facturas));
+    mostrarFacturas();
+}
+
+function mostrarFacturas() {
+    tablaFacturas.innerHTML = `
+    <tr>
+        <th>Paciente</th><th>Producto</th><th>Monto</th><th>Fecha</th>
+    </tr>
+    `;
+
+    facturas.forEach(f=>{
+        tablaFacturas.innerHTML += `
+        <tr>
+            <td>${f.paciente}</td>
+            <td>${f.producto}</td>
+            <td>$${f.monto}</td>
+            <td>${f.fecha}</td>
+        </tr>`;
+    });
+}
+
+/* ---------------------------------
+   INICIALIZAR
+----------------------------------*/
+mostrarPacientes();
+mostrarHC();
+mostrarProductos();
+mostrarFacturas();
+cargarSelectPacientes();
+cargarSelectProductos();
+</script>
+
+</body>
+</html>
